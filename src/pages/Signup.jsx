@@ -3,13 +3,10 @@ import axios from 'axios'
 import toast from 'react-hot-toast'
 import { useNavigate, Link } from 'react-router-dom'
 
-import { useAuth } from '../context/AuthContext'
-
 const API = import.meta.env.VITE_API_URL
 
 const Signup = () => {
   const navigate = useNavigate()
-  const { updateUser } = useAuth()
 
   const [formData, setFormData] = useState({
     name: '',
@@ -18,6 +15,8 @@ const Signup = () => {
   })
 
   const [loading, setLoading] = useState(false)
+  const [registeredEmail, setRegisteredEmail] = useState('')
+  const [verificationSent, setVerificationSent] = useState(false)
 
   const handleChange = (e) => {
     setFormData({
@@ -42,16 +41,19 @@ const Signup = () => {
         }
       )
 
-      localStorage.setItem(
-        'userInfo',
-        JSON.stringify(data)
+      toast.success(
+        data?.message ||
+          'Account created. Please verify your email.'
       )
 
-      updateUser(data)
+      setRegisteredEmail(formData.email)
+      setVerificationSent(true)
 
-      toast.success('Account Created Successfully')
-
-      navigate('/dashboard', { replace: true })
+      setFormData({
+        name: '',
+        email: '',
+        password: '',
+      })
     } catch (error) {
       toast.error(
         error.response?.data?.message || 'Signup Failed'
@@ -59,6 +61,78 @@ const Signup = () => {
     } finally {
       setLoading(false)
     }
+  }
+
+  const resendVerification = async () => {
+    if (!registeredEmail) {
+      toast.error('Email not found')
+      return
+    }
+
+    try {
+      setLoading(true)
+
+      const { data } = await axios.post(
+        `${API}/api/auth/resend-verification`,
+        {
+          email: registeredEmail,
+        }
+      )
+
+      toast.success(
+        data?.message ||
+          'Verification email sent again'
+      )
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message ||
+          'Failed to resend email'
+      )
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (verificationSent) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center px-4 py-10">
+        <div className="w-full max-w-md bg-zinc-900 border border-white/10 rounded-3xl p-6 md:p-10 text-center">
+          <h1 className="text-3xl font-bold text-white">
+            Verify Your Email
+          </h1>
+
+          <p className="text-gray-400 mt-4 leading-relaxed">
+            We sent a verification link to:
+          </p>
+
+          <p className="text-yellow-500 font-bold mt-3 break-all">
+            {registeredEmail}
+          </p>
+
+          <p className="text-gray-400 mt-5 text-sm">
+            Please open your email and click the verification link.
+            After verification, you can login.
+          </p>
+
+          <button
+            type="button"
+            onClick={() => navigate('/login')}
+            className="w-full mt-8 bg-yellow-500 hover:bg-yellow-400 text-black py-4 rounded-xl font-bold transition"
+          >
+            Go To Login
+          </button>
+
+          <button
+            type="button"
+            onClick={resendVerification}
+            disabled={loading}
+            className="w-full mt-4 bg-white/10 hover:bg-white/20 text-white py-4 rounded-xl font-bold transition disabled:opacity-50"
+          >
+            {loading ? 'Sending...' : 'Resend Verification Email'}
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (

@@ -12,6 +12,9 @@ import Contact from './pages/Contact'
 
 import Login from './pages/Login'
 import Signup from './pages/Signup'
+import VerifyEmail from './pages/VerifyEmail'
+import ForgotPassword from './pages/ForgotPassword'
+import ResetPassword from './pages/ResetPassword'
 
 import Dashboard from './pages/Dashboard'
 import AdminDashboard from './pages/AdminDashboard'
@@ -29,7 +32,6 @@ function App() {
   return (
     <Routes>
       <Route path='/' element={<MainLayout />}>
-
         <Route index element={<Home />} />
 
         <Route path='about' element={<About />} />
@@ -100,13 +102,26 @@ function App() {
             </AdminRoute>
           }
         />
-
       </Route>
 
       <Route path='/login' element={<Login />} />
 
       <Route path='/signup' element={<Signup />} />
 
+      <Route
+        path='/verify-email/:token'
+        element={<VerifyEmail />}
+      />
+
+      <Route
+        path='/forgot-password'
+        element={<ForgotPassword />}
+      />
+
+      <Route
+        path='/reset-password/:token'
+        element={<ResetPassword />}
+      />
     </Routes>
   )
 }

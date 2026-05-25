@@ -16,6 +16,8 @@ const Login = () => {
   const { updateUser } = useAuth()
 
   const [loading, setLoading] = useState(false)
+  const [resending, setResending] = useState(false)
+  const [showResend, setShowResend] = useState(false)
 
   const [formData, setFormData] = useState({
     email: '',
@@ -47,6 +49,7 @@ const Login = () => {
     e.preventDefault()
 
     setLoading(true)
+    setShowResend(false)
 
     try {
       const config = {
@@ -76,11 +79,46 @@ const Login = () => {
         navigate('/dashboard', { replace: true })
       }
     } catch (error) {
-      toast.error(
+      const message =
         error.response?.data?.message || 'Login Failed'
-      )
+
+      toast.error(message)
+
+      if (error.response?.data?.emailNotVerified) {
+        setShowResend(true)
+      }
     } finally {
       setLoading(false)
+    }
+  }
+
+  const resendVerificationEmail = async () => {
+    if (!formData.email) {
+      toast.error('Please enter your email first')
+      return
+    }
+
+    try {
+      setResending(true)
+
+      const { data } = await axios.post(
+        `${API}/api/auth/resend-verification`,
+        {
+          email: formData.email,
+        }
+      )
+
+      toast.success(
+        data?.message ||
+          'Verification email sent successfully'
+      )
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message ||
+          'Failed to resend verification email'
+      )
+    } finally {
+      setResending(false)
     }
   }
 
@@ -115,9 +153,18 @@ const Login = () => {
           </div>
 
           <div>
-            <label className="block text-sm text-gray-400 mb-2">
-              Password
-            </label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-sm text-gray-400">
+                Password
+              </label>
+
+              <Link
+                to="/forgot-password"
+                className="text-sm text-yellow-500 hover:text-yellow-400 font-semibold"
+              >
+                Forgot Password?
+              </Link>
+            </div>
 
             <input
               type="password"
@@ -138,6 +185,19 @@ const Login = () => {
             {loading ? 'Logging In...' : 'Login'}
           </button>
         </form>
+
+        {showResend && (
+          <button
+            type="button"
+            onClick={resendVerificationEmail}
+            disabled={resending}
+            className="w-full mt-5 bg-white/10 hover:bg-white/20 text-white py-4 rounded-2xl font-bold transition disabled:opacity-50"
+          >
+            {resending
+              ? 'Sending Verification Email...'
+              : 'Resend Verification Email'}
+          </button>
+        )}
 
         <p className="text-gray-400 text-center mt-8">
           Don&apos;t have an account?{' '}
