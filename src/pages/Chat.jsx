@@ -3,6 +3,11 @@ import axios from 'axios'
 import { io } from 'socket.io-client'
 import { FaTrash } from 'react-icons/fa'
 
+import {
+  requestNotificationPermission,
+  showMessageNotification,
+} from '../utils/notify'
+
 const socket = io(import.meta.env.VITE_API_URL)
 
 const API = `${import.meta.env.VITE_API_URL}/api/messages`
@@ -26,6 +31,7 @@ const Chat = () => {
   }
 
   useEffect(() => {
+    requestNotificationPermission()
     fetchMessages()
   }, [])
 
@@ -45,6 +51,24 @@ const Chat = () => {
         if (exists) return prev
         return [...prev, data]
       })
+
+      const messageUserId =
+        data.user?._id ||
+        data.user?.id ||
+        data.user?.userId ||
+        data.user
+
+      const isOwnMessage =
+        String(messageUserId) === String(loggedInUserId)
+
+      if (!isOwnMessage) {
+        showMessageNotification({
+          title: 'New Public Message',
+          body: `${data.name || data.user?.name || 'Someone'}: ${
+            data.text || 'New message'
+          }`,
+        })
+      }
     })
 
     socket.on('typing', (name) => {
@@ -60,7 +84,7 @@ const Chat = () => {
       socket.off('typing')
       socket.off('stop_typing')
     }
-  }, [])
+  }, [loggedInUserId])
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({
@@ -127,7 +151,6 @@ const Chat = () => {
   return (
     <div className="min-h-screen bg-black text-white pt-10 pb-10 px-4">
       <div className="max-w-5xl mx-auto w-full">
-
         <div className="mb-8 text-center">
           <h1 className="text-3xl md:text-5xl font-extrabold">
             Live Gym Chat
@@ -139,7 +162,6 @@ const Chat = () => {
         </div>
 
         <div className="bg-zinc-900 border border-white/10 rounded-3xl overflow-hidden shadow-2xl">
-
           <div className="border-b border-white/10 px-5 md:px-6 py-4 md:py-5 flex items-center justify-between">
             <h2 className="text-xl md:text-2xl font-bold">
               Community Chat
@@ -266,9 +288,7 @@ const Chat = () => {
               </button>
             </div>
           </div>
-
         </div>
-
       </div>
     </div>
   )

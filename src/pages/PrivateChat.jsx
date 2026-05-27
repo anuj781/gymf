@@ -18,6 +18,11 @@ import {
 
 import socket from '../socket'
 
+import {
+  requestNotificationPermission,
+  showMessageNotification,
+} from '../utils/notify'
+
 const API = `${import.meta.env.VITE_API_URL}/api/private-chat`
 
 const PrivateChat = () => {
@@ -54,6 +59,7 @@ const PrivateChat = () => {
   }
 
   useEffect(() => {
+    requestNotificationPermission()
     fetchChatData()
 
     socket.emit(
@@ -70,10 +76,36 @@ const PrivateChat = () => {
           message.conversation?._id ===
             conversationId
         ) {
-          setMessages((prev) => [
-            ...prev,
-            message,
-          ])
+          setMessages((prev) => {
+            const exists = prev.some(
+              (msg) => msg._id === message._id
+            )
+
+            if (exists) return prev
+
+            return [...prev, message]
+          })
+
+          const senderId =
+            message.sender?._id ||
+            message.sender?.id ||
+            message.sender?.userId ||
+            message.sender
+
+          const isOwnMessage =
+            String(senderId) ===
+            String(loggedInUserId)
+
+          if (!isOwnMessage) {
+            showMessageNotification({
+              title: 'New Private Message',
+              body: `${
+                message.sender?.name || 'Someone'
+              }: ${
+                message.text || 'Image message'
+              }`,
+            })
+          }
         }
       }
     )
@@ -103,7 +135,7 @@ const PrivateChat = () => {
         'private_stop_typing'
       )
     }
-  }, [conversationId])
+  }, [conversationId, loggedInUserId])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({
