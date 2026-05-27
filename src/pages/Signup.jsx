@@ -1,90 +1,54 @@
 import { useState } from 'react'
 import axios from 'axios'
 import toast from 'react-hot-toast'
-import {
-  useNavigate,
-  Link,
-} from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
+import { FaArrowLeft } from 'react-icons/fa'
 
 const API = import.meta.env.VITE_API_URL
 
 const Signup = () => {
   const navigate = useNavigate()
 
-  const [formData, setFormData] =
-    useState({
-      name: '',
-      email: '',
-      password: '',
-    })
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+  })
 
-  const [loading, setLoading] =
-    useState(false)
-
-  const [registeredEmail, setRegisteredEmail] =
-    useState('')
-
-  const [verificationSent, setVerificationSent] =
-    useState(false)
-
-  /* HANDLE INPUT CHANGE */
+  const [loading, setLoading] = useState(false)
+  const [registeredEmail, setRegisteredEmail] = useState('')
+  const [verificationSent, setVerificationSent] = useState(false)
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]:
-        e.target.value,
+      [e.target.name]: e.target.value,
     })
   }
 
-  /* HANDLE SIGNUP */
+  const getErrorMessage = (error) => {
+    if (error.code === 'ERR_NETWORK') {
+      return 'Backend server is not running or API URL is wrong'
+    }
+
+    return error.response?.data?.message || error.message || 'Signup failed'
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
 
-    console.log(
-      '\n🚀 SIGNUP STARTED'
-    )
-
-    console.log(
-      '📤 FORM DATA:',
-      formData
-    )
-
     setLoading(true)
 
     try {
-      console.log(
-        '🌐 API URL:',
-        `${API}/api/auth/register`
-      )
+      const { data } = await axios.post(`${API}/api/auth/register`, formData, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
 
-      const { data } =
-        await axios.post(
-          `${API}/api/auth/register`,
-          formData,
-          {
-            headers: {
-              'Content-Type':
-                'application/json',
-            },
-          }
-        )
+      toast.success(data?.message || 'Account created successfully')
 
-      console.log(
-        '✅ SIGNUP SUCCESS RESPONSE:',
-        data
-      )
-
-      toast.success(
-        data?.message ||
-          'Account created successfully'
-      )
-
-      setRegisteredEmail(
-        formData.email
-      )
-
+      setRegisteredEmail(formData.email)
       setVerificationSent(true)
 
       setFormData({
@@ -93,150 +57,57 @@ const Signup = () => {
         password: '',
       })
     } catch (error) {
-      console.log(
-        '\n❌ SIGNUP ERROR'
-      )
-
-      console.log(
-        'FULL ERROR:',
-        error
-      )
-
-      console.log(
-        'ERROR MESSAGE:',
-        error.message
-      )
-
-      console.log(
-        'ERROR RESPONSE:',
-        error.response
-      )
-
-      console.log(
-        'ERROR DATA:',
-        error.response?.data
-      )
-
-      console.log(
-        'ERROR STATUS:',
-        error.response?.status
-      )
-
-      console.log(
-        'ERROR HEADERS:',
-        error.response?.headers
-      )
-
-      /* NETWORK ERROR */
-
-      if (
-        error.code ===
-        'ERR_NETWORK'
-      ) {
-        toast.error(
-          'Backend server is not running or API URL is wrong'
-        )
-
-        return
-      }
-
-      toast.error(
-        error.response?.data
-          ?.message ||
-          error.message ||
-          'Signup Failed'
-      )
+      toast.error(getErrorMessage(error))
     } finally {
       setLoading(false)
-
-      console.log(
-        '🛑 SIGNUP FINISHED'
-      )
     }
   }
 
-  /* RESEND VERIFICATION EMAIL */
-
-  const resendVerification =
-    async () => {
-      if (!registeredEmail) {
-        toast.error(
-          'Email not found'
-        )
-
-        return
-      }
-
-      try {
-        setLoading(true)
-
-        console.log(
-          '\n📩 RESEND EMAIL STARTED'
-        )
-
-        console.log(
-          'EMAIL:',
-          registeredEmail
-        )
-
-        const { data } =
-          await axios.post(
-            `${API}/api/auth/resend-verification`,
-            {
-              email:
-                registeredEmail,
-            }
-          )
-
-        console.log(
-          '✅ RESEND SUCCESS:',
-          data
-        )
-
-        toast.success(
-          data?.message ||
-            'Verification email sent again'
-        )
-      } catch (error) {
-        console.log(
-          '\n❌ RESEND EMAIL ERROR'
-        )
-
-        console.log(error)
-
-        console.log(
-          'MESSAGE:',
-          error.message
-        )
-
-        console.log(
-          'RESPONSE:',
-          error.response
-        )
-
-        console.log(
-          'DATA:',
-          error.response?.data
-        )
-
-        toast.error(
-          error.response?.data
-            ?.message ||
-            error.message ||
-            'Failed to resend email'
-        )
-      } finally {
-        setLoading(false)
-      }
+  const resendVerification = async () => {
+    if (!registeredEmail) {
+      toast.error('Email not found')
+      return
     }
 
-  /* VERIFICATION SCREEN */
+    setLoading(true)
+
+    try {
+      const { data } = await axios.post(
+        `${API}/api/auth/resend-verification`,
+        {
+          email: registeredEmail,
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      )
+
+      toast.success(data?.message || 'Verification email sent again')
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message ||
+          error.message ||
+          'Failed to resend email'
+      )
+    } finally {
+      setLoading(false)
+    }
+  }
 
   if (verificationSent) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center px-4 py-10">
-        <div className="w-full max-w-md bg-zinc-900 border border-white/10 rounded-3xl p-6 md:p-10 text-center">
+      <div className="min-h-screen bg-black flex items-center justify-center px-4 pt-24 pb-10 relative">
+        <Link
+          to="/"
+          className="absolute top-5 left-4 sm:top-6 sm:left-6 flex items-center gap-3 text-sm sm:text-base text-white hover:text-yellow-500 transition font-semibold z-50"
+        >
+          <FaArrowLeft />
+          <span>Go Back Home</span>
+        </Link>
 
+        <div className="w-full max-w-md bg-zinc-900 border border-white/10 rounded-3xl p-6 md:p-10 text-center">
           <h1 className="text-3xl font-bold text-white">
             Verify Your Email
           </h1>
@@ -250,15 +121,13 @@ const Signup = () => {
           </p>
 
           <p className="text-gray-400 mt-5 text-sm">
-            Please open your email and click the verification link.
-            After verification, you can login.
+            Please open your email and click the verification link. After
+            verification, you can login.
           </p>
 
           <button
             type="button"
-            onClick={() =>
-              navigate('/login')
-            }
+            onClick={() => navigate('/login')}
             className="w-full mt-8 bg-yellow-500 hover:bg-yellow-400 text-black py-4 rounded-xl font-bold transition"
           >
             Go To Login
@@ -266,30 +135,29 @@ const Signup = () => {
 
           <button
             type="button"
-            onClick={
-              resendVerification
-            }
+            onClick={resendVerification}
             disabled={loading}
             className="w-full mt-4 bg-white/10 hover:bg-white/20 text-white py-4 rounded-xl font-bold transition disabled:opacity-50"
           >
-            {loading
-              ? 'Sending...'
-              : 'Resend Verification Email'}
+            {loading ? 'Sending...' : 'Resend Verification Email'}
           </button>
         </div>
       </div>
     )
   }
 
-  /* SIGNUP FORM */
-
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center px-4 py-10">
+    <div className="min-h-screen bg-black flex items-center justify-center px-4 pt-24 pb-10 relative">
+      <Link
+        to="/"
+        className="absolute top-5 left-4 sm:top-6 sm:left-6 flex items-center gap-3 text-sm sm:text-base text-white hover:text-yellow-500 transition font-semibold z-50"
+      >
+        <FaArrowLeft />
+        <span>Go Back Home</span>
+      </Link>
 
       <div className="w-full max-w-md bg-zinc-900 border border-white/10 rounded-3xl p-6 md:p-10">
-
         <div className="text-center mb-8">
-
           <h1 className="text-4xl font-bold text-white">
             Create Account
           </h1>
@@ -297,16 +165,10 @@ const Signup = () => {
           <p className="text-gray-400 mt-3">
             Join the premium gym community
           </p>
-
         </div>
 
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-6"
-        >
-
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-
             <label className="block text-sm text-gray-400 mb-2">
               Full Name
             </label>
@@ -316,17 +178,13 @@ const Signup = () => {
               name="name"
               placeholder="Enter your name"
               value={formData.name}
-              onChange={
-                handleChange
-              }
+              onChange={handleChange}
               className="w-full bg-black border border-white/10 rounded-xl px-5 py-4 text-white outline-none focus:border-yellow-500 transition"
               required
             />
-
           </div>
 
           <div>
-
             <label className="block text-sm text-gray-400 mb-2">
               Email Address
             </label>
@@ -336,17 +194,13 @@ const Signup = () => {
               name="email"
               placeholder="Enter your email"
               value={formData.email}
-              onChange={
-                handleChange
-              }
+              onChange={handleChange}
               className="w-full bg-black border border-white/10 rounded-xl px-5 py-4 text-white outline-none focus:border-yellow-500 transition"
               required
             />
-
           </div>
 
           <div>
-
             <label className="block text-sm text-gray-400 mb-2">
               Password
             </label>
@@ -356,13 +210,10 @@ const Signup = () => {
               name="password"
               placeholder="Enter your password"
               value={formData.password}
-              onChange={
-                handleChange
-              }
+              onChange={handleChange}
               className="w-full bg-black border border-white/10 rounded-xl px-5 py-4 text-white outline-none focus:border-yellow-500 transition"
               required
             />
-
           </div>
 
           <button
@@ -370,26 +221,19 @@ const Signup = () => {
             disabled={loading}
             className="w-full bg-yellow-500 hover:bg-yellow-400 text-black py-4 rounded-xl font-bold transition duration-300 hover:scale-105 disabled:opacity-50"
           >
-            {loading
-              ? 'Creating Account...'
-              : 'Signup'}
+            {loading ? 'Creating Account...' : 'Signup'}
           </button>
-
         </form>
 
         <p className="text-gray-400 text-center mt-8">
-
           Already have an account?{' '}
-
           <Link
             to="/login"
             className="text-yellow-500 hover:text-yellow-400 font-semibold"
           >
             Login
           </Link>
-
         </p>
-
       </div>
     </div>
   )

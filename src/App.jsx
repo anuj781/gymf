@@ -13,6 +13,7 @@ import Contact from './pages/Contact'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
 import VerifyEmail from './pages/VerifyEmail'
+import ResendVerification from './pages/ResendVerification'
 import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
 
@@ -31,17 +32,17 @@ import AdminRoute from './components/AdminRoute'
 function App() {
   return (
     <Routes>
-      <Route path='/' element={<MainLayout />}>
+      <Route path="/" element={<MainLayout />}>
         <Route index element={<Home />} />
 
-        <Route path='about' element={<About />} />
+        <Route path="about" element={<About />} />
 
-        <Route path='pricing' element={<Pricing />} />
+        <Route path="pricing" element={<Pricing />} />
 
-        <Route path='contact' element={<Contact />} />
+        <Route path="contact" element={<Contact />} />
 
         <Route
-          path='chat'
+          path="chat"
           element={
             <ProtectedRoute>
               <Chat />
@@ -50,7 +51,7 @@ function App() {
         />
 
         <Route
-          path='chat/:conversationId'
+          path="chat/:conversationId"
           element={
             <ProtectedRoute>
               <PrivateChat />
@@ -59,7 +60,7 @@ function App() {
         />
 
         <Route
-          path='search-users'
+          path="search-users"
           element={
             <ProtectedRoute>
               <SearchUsers />
@@ -68,7 +69,7 @@ function App() {
         />
 
         <Route
-          path='profile/:id'
+          path="profile/:id"
           element={
             <ProtectedRoute>
               <UserProfile />
@@ -77,7 +78,7 @@ function App() {
         />
 
         <Route
-          path='inbox'
+          path="inbox"
           element={
             <ProtectedRoute>
               <Inbox />
@@ -86,7 +87,7 @@ function App() {
         />
 
         <Route
-          path='dashboard'
+          path="dashboard"
           element={
             <ProtectedRoute>
               <Dashboard />
@@ -95,7 +96,7 @@ function App() {
         />
 
         <Route
-          path='admin'
+          path="admin"
           element={
             <AdminRoute>
               <AdminDashboard />
@@ -104,22 +105,27 @@ function App() {
         />
       </Route>
 
-      <Route path='/login' element={<Login />} />
+      <Route path="/login" element={<Login />} />
 
-      <Route path='/signup' element={<Signup />} />
+      <Route path="/signup" element={<Signup />} />
 
       <Route
-        path='/verify-email/:token'
+        path="/verify-email/:token"
         element={<VerifyEmail />}
       />
 
       <Route
-        path='/forgot-password'
+        path="/resend-verification"
+        element={<ResendVerification />}
+      />
+
+      <Route
+        path="/forgot-password"
         element={<ForgotPassword />}
       />
 
       <Route
-        path='/reset-password/:token'
+        path="/reset-password/:token"
         element={<ResetPassword />}
       />
     </Routes>

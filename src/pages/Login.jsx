@@ -1,11 +1,8 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
 import toast from 'react-hot-toast'
-
-import {
-  useNavigate,
-  Link,
-} from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
+import { FaArrowLeft } from 'react-icons/fa'
 
 import { useAuth } from '../context/AuthContext'
 
@@ -25,16 +22,12 @@ const Login = () => {
   })
 
   useEffect(() => {
-    const userInfo = JSON.parse(
-      localStorage.getItem('userInfo')
-    )
+    const userInfo = JSON.parse(localStorage.getItem('userInfo'))
 
     if (userInfo?._id) {
-      if (userInfo.isAdmin) {
-        navigate('/admin', { replace: true })
-      } else {
-        navigate('/dashboard', { replace: true })
-      }
+      navigate(userInfo.isAdmin ? '/admin' : '/dashboard', {
+        replace: true,
+      })
     }
   }, [navigate])
 
@@ -50,24 +43,7 @@ const Login = () => {
       return 'Backend server is not running or API URL is wrong'
     }
 
-    return (
-      error.response?.data?.message ||
-      error.message ||
-      fallback
-    )
-  }
-
-  const logAxiosError = (title, error) => {
-    console.log(`\n❌ ${title}`)
-    console.log('FULL ERROR:', error)
-    console.log('MESSAGE:', error.message)
-    console.log('CODE:', error.code)
-    console.log('STATUS:', error.response?.status)
-    console.log('BACKEND DATA:', error.response?.data)
-    console.log('HEADERS:', error.response?.headers)
-    console.log('REQUEST URL:', error.config?.url)
-    console.log('REQUEST METHOD:', error.config?.method)
-    console.log('REQUEST DATA:', error.config?.data)
+    return error.response?.data?.message || error.message || fallback
   }
 
   const handleSubmit = async (e) => {
@@ -77,47 +53,22 @@ const Login = () => {
     setShowResend(false)
 
     try {
-      console.log('\n🚀 LOGIN STARTED')
-      console.log('API URL:', `${API}/api/auth/login`)
-      console.log('FORM DATA:', {
-        email: formData.email,
-        password: '********',
+      const { data } = await axios.post(`${API}/api/auth/login`, formData, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
       })
 
-      const { data } = await axios.post(
-        `${API}/api/auth/login`,
-        formData,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      )
-
-      console.log('✅ LOGIN SUCCESS:', data)
-
-      localStorage.setItem(
-        'userInfo',
-        JSON.stringify(data)
-      )
-
+      localStorage.setItem('userInfo', JSON.stringify(data))
       updateUser(data)
 
-      toast.success('Login Successful')
+      toast.success('Login successful')
 
-      if (data.isAdmin) {
-        navigate('/admin', { replace: true })
-      } else {
-        navigate('/dashboard', { replace: true })
-      }
+      navigate(data.isAdmin ? '/admin' : '/dashboard', {
+        replace: true,
+      })
     } catch (error) {
-      logAxiosError('LOGIN ERROR', error)
-
-      const message = getErrorMessage(
-        error,
-        'Login Failed'
-      )
-
+      const message = getErrorMessage(error, 'Login failed')
       toast.error(message)
 
       if (error.response?.data?.emailNotVerified) {
@@ -125,7 +76,6 @@ const Login = () => {
       }
     } finally {
       setLoading(false)
-      console.log('🛑 LOGIN FINISHED')
     }
   }
 
@@ -135,13 +85,9 @@ const Login = () => {
       return
     }
 
+    setResending(true)
+
     try {
-      setResending(true)
-
-      console.log('\n📩 RESEND VERIFICATION STARTED')
-      console.log('API URL:', `${API}/api/auth/resend-verification`)
-      console.log('EMAIL:', formData.email)
-
       const { data } = await axios.post(
         `${API}/api/auth/resend-verification`,
         {
@@ -154,32 +100,26 @@ const Login = () => {
         }
       )
 
-      console.log('✅ RESEND VERIFICATION SUCCESS:', data)
-
-      toast.success(
-        data?.message ||
-          'Verification email sent successfully'
-      )
+      toast.success(data?.message || 'Verification email sent successfully')
     } catch (error) {
-      logAxiosError(
-        'RESEND VERIFICATION ERROR',
-        error
-      )
-
       toast.error(
-        getErrorMessage(
-          error,
-          'Failed to resend verification email'
-        )
+        getErrorMessage(error, 'Failed to resend verification email')
       )
     } finally {
       setResending(false)
-      console.log('🛑 RESEND VERIFICATION FINISHED')
     }
   }
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center px-4 py-10">
+    <div className="min-h-screen bg-black flex items-center justify-center px-4 pt-24 pb-10 relative">
+      <Link
+        to="/"
+        className="absolute top-5 left-4 sm:top-6 sm:left-6 flex items-center gap-3 text-sm sm:text-base text-white hover:text-yellow-500 transition font-semibold z-50"
+      >
+        <FaArrowLeft />
+        <span>Go Back Home</span>
+      </Link>
+
       <div className="w-full max-w-md bg-zinc-900 border border-white/10 rounded-3xl p-6 md:p-10 shadow-2xl">
         <div className="text-center mb-10">
           <h2 className="text-4xl md:text-5xl font-bold text-white">
@@ -249,9 +189,7 @@ const Login = () => {
             disabled={resending}
             className="w-full mt-5 bg-white/10 hover:bg-white/20 text-white py-4 rounded-2xl font-bold transition disabled:opacity-50"
           >
-            {resending
-              ? 'Sending Verification Email...'
-              : 'Resend Verification Email'}
+            {resending ? 'Sending Verification Email...' : 'Resend Verification Email'}
           </button>
         )}
 

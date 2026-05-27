@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom'
 
 const API = import.meta.env.VITE_API_URL
 
-const ForgotPassword = () => {
+const ResendVerification = () => {
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const [sent, setSent] = useState(false)
@@ -18,7 +18,7 @@ const ForgotPassword = () => {
     return (
       error.response?.data?.message ||
       error.message ||
-      'Failed to send reset email'
+      'Failed to resend verification email'
     )
   }
 
@@ -34,7 +34,7 @@ const ForgotPassword = () => {
 
     try {
       const { data } = await axios.post(
-        `${API}/api/auth/forgot-password`,
+        `${API}/api/auth/resend-verification`,
         { email },
         {
           headers: {
@@ -45,7 +45,10 @@ const ForgotPassword = () => {
 
       setSent(true)
 
-      toast.success(data?.message || 'Password reset email sent')
+      toast.success(
+        data?.message ||
+          'Verification email sent successfully'
+      )
     } catch (error) {
       toast.error(getErrorMessage(error))
     } finally {
@@ -58,18 +61,18 @@ const ForgotPassword = () => {
       <div className="w-full max-w-md bg-zinc-900 border border-white/10 rounded-3xl p-6 md:p-10">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-white">
-            Forgot Password
+            Resend Verification
           </h1>
 
           <p className="text-gray-400 mt-3">
-            Enter your email and we will send you a reset link.
+            Enter your email to receive a new verification link.
           </p>
         </div>
 
         {sent ? (
           <div className="text-center">
             <p className="text-gray-300 leading-relaxed">
-              Password reset link has been sent to:
+              Verification link has been sent to:
             </p>
 
             <p className="text-yellow-500 font-bold mt-3 break-all">
@@ -105,11 +108,11 @@ const ForgotPassword = () => {
               disabled={loading}
               className="w-full bg-yellow-500 hover:bg-yellow-400 text-black py-4 rounded-xl font-bold transition disabled:opacity-50"
             >
-              {loading ? 'Sending...' : 'Send Reset Link'}
+              {loading ? 'Sending...' : 'Resend Verification Email'}
             </button>
 
             <p className="text-gray-400 text-center">
-              Remember password?{' '}
+              Already verified?{' '}
               <Link
                 to="/login"
                 className="text-yellow-500 hover:text-yellow-400 font-semibold"
@@ -124,4 +127,4 @@ const ForgotPassword = () => {
   )
 }
 
-export default ForgotPassword
+export default ResendVerification

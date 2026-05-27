@@ -13,32 +13,41 @@ const VerifyEmail = () => {
   const [message, setMessage] = useState('')
 
   useEffect(() => {
+    const verifyEmail = async () => {
+      try {
+        const { data } = await axios.get(
+          `${API}/api/auth/verify-email/${token}`
+        )
+
+        setSuccess(true)
+
+        setMessage(
+          data?.message ||
+            'Email verified successfully'
+        )
+
+        toast.success(
+          data?.message ||
+            'Email verified successfully'
+        )
+      } catch (error) {
+        const errorMessage =
+          error.response?.data?.message ||
+          error.message ||
+          'Email verification failed'
+
+        setSuccess(false)
+
+        setMessage(errorMessage)
+
+        toast.error(errorMessage)
+      } finally {
+        setLoading(false)
+      }
+    }
+
     verifyEmail()
   }, [token])
-
-  const verifyEmail = async () => {
-    try {
-      const { data } = await axios.get(
-        `${API}/api/auth/verify-email/${token}`
-      )
-
-      setSuccess(true)
-      setMessage(data?.message || 'Email verified successfully')
-      toast.success(data?.message || 'Email verified successfully')
-    } catch (error) {
-      setSuccess(false)
-      setMessage(
-        error.response?.data?.message ||
-          'Invalid or expired verification link'
-      )
-      toast.error(
-        error.response?.data?.message ||
-          'Email verification failed'
-      )
-    } finally {
-      setLoading(false)
-    }
-  }
 
   return (
     <div className="min-h-screen bg-black flex items-center justify-center px-4 py-10">

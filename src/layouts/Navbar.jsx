@@ -43,7 +43,6 @@ const Navbar = () => {
   const navLinks = [
     { name: 'Home', path: '/' },
     { name: 'About', path: '/about' },
-    { name: 'Pricing', path: '/pricing' },
     { name: 'Contact', path: '/contact' },
     {
       name: 'Public Chat',
@@ -62,6 +61,10 @@ const Navbar = () => {
       name: 'Inbox',
       path: '/inbox',
       icon: <FaInbox />,
+    },
+    {
+      name: 'Subscriptions',
+      path: '/pricing',
     },
   ]
 
@@ -126,6 +129,13 @@ const Navbar = () => {
                   >
                     <FaInbox />
                     Inbox
+                  </Link>
+
+                  <Link
+                    to='/pricing'
+                    className='flex items-center gap-2 text-white hover:text-yellow-500 transition font-medium whitespace-nowrap'
+                  >
+                    Subscriptions
                   </Link>
                 </div>
 

@@ -40,7 +40,11 @@ const Chat = () => {
 
   useEffect(() => {
     socket.on('receive_message', (data) => {
-      setMessages((prev) => [...prev, data])
+      setMessages((prev) => {
+        const exists = prev.some((msg) => msg._id === data._id)
+        if (exists) return prev
+        return [...prev, data]
+      })
     })
 
     socket.on('typing', (name) => {
@@ -65,20 +69,34 @@ const Chat = () => {
     })
   }, [messages])
 
-  const sendMessage = () => {
+  const sendMessage = async () => {
     if (!message.trim()) return
     if (!loggedInUserId) return
 
-    socket.emit('send_message', {
-      user: loggedInUserId,
-      name: userInfo.name,
-      profileImage: userInfo.profileImage || '',
-      text: message,
-      type: 'text',
-    })
+    try {
+      const { data } = await axios.post(
+        API,
+        {
+          text: message,
+          type: 'text',
+        },
+        config
+      )
 
-    socket.emit('stop_typing')
-    setMessage('')
+      socket.emit('send_message', data)
+
+      setMessages((prev) => {
+        const exists = prev.some((msg) => msg._id === data._id)
+        if (exists) return prev
+        return [...prev, data]
+      })
+
+      socket.emit('stop_typing')
+      setMessage('')
+    } catch (error) {
+      console.log(error.response?.data || error.message)
+      alert(error.response?.data?.message || 'Message send failed')
+    }
   }
 
   const deleteMessage = async (messageId) => {

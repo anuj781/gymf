@@ -1,7 +1,11 @@
 import { useState } from 'react'
 import axios from 'axios'
 import toast from 'react-hot-toast'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import {
+  Link,
+  useNavigate,
+  useParams,
+} from 'react-router-dom'
 
 const API = import.meta.env.VITE_API_URL
 
@@ -13,6 +17,18 @@ const ResetPassword = () => {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [resetSuccess, setResetSuccess] = useState(false)
+
+  const getErrorMessage = (error) => {
+    if (error.code === 'ERR_NETWORK') {
+      return 'Backend server is not running or API URL is wrong'
+    }
+
+    return (
+      error.response?.data?.message ||
+      error.message ||
+      'Password reset failed'
+    )
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -27,28 +43,28 @@ const ResetPassword = () => {
       return
     }
 
-    try {
-      setLoading(true)
+    setLoading(true)
 
+    try {
       const { data } = await axios.put(
         `${API}/api/auth/reset-password/${token}`,
-        { password }
+        { password },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
       )
 
       setResetSuccess(true)
 
-      toast.success(
-        data?.message || 'Password reset successfully'
-      )
+      toast.success(data?.message || 'Password reset successfully')
 
       setTimeout(() => {
         navigate('/login')
       }, 1500)
     } catch (error) {
-      toast.error(
-        error.response?.data?.message ||
-          'Password reset failed'
-      )
+      toast.error(getErrorMessage(error))
     } finally {
       setLoading(false)
     }
@@ -90,7 +106,10 @@ const ResetPassword = () => {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-6"
+        >
           <div>
             <label className="block text-sm text-gray-400 mb-2">
               New Password
@@ -100,7 +119,9 @@ const ResetPassword = () => {
               type="password"
               placeholder="Enter new password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) =>
+                setPassword(e.target.value)
+              }
               className="w-full bg-black border border-white/10 rounded-xl px-5 py-4 text-white outline-none focus:border-yellow-500 transition"
               required
             />
@@ -115,7 +136,9 @@ const ResetPassword = () => {
               type="password"
               placeholder="Confirm new password"
               value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
+              onChange={(e) =>
+                setConfirmPassword(e.target.value)
+              }
               className="w-full bg-black border border-white/10 rounded-xl px-5 py-4 text-white outline-none focus:border-yellow-500 transition"
               required
             />
