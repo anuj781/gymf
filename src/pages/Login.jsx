@@ -45,6 +45,31 @@ const Login = () => {
     })
   }
 
+  const getErrorMessage = (error, fallback) => {
+    if (error.code === 'ERR_NETWORK') {
+      return 'Backend server is not running or API URL is wrong'
+    }
+
+    return (
+      error.response?.data?.message ||
+      error.message ||
+      fallback
+    )
+  }
+
+  const logAxiosError = (title, error) => {
+    console.log(`\n❌ ${title}`)
+    console.log('FULL ERROR:', error)
+    console.log('MESSAGE:', error.message)
+    console.log('CODE:', error.code)
+    console.log('STATUS:', error.response?.status)
+    console.log('BACKEND DATA:', error.response?.data)
+    console.log('HEADERS:', error.response?.headers)
+    console.log('REQUEST URL:', error.config?.url)
+    console.log('REQUEST METHOD:', error.config?.method)
+    console.log('REQUEST DATA:', error.config?.data)
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
 
@@ -52,17 +77,24 @@ const Login = () => {
     setShowResend(false)
 
     try {
-      const config = {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
+      console.log('\n🚀 LOGIN STARTED')
+      console.log('API URL:', `${API}/api/auth/login`)
+      console.log('FORM DATA:', {
+        email: formData.email,
+        password: '********',
+      })
 
       const { data } = await axios.post(
         `${API}/api/auth/login`,
         formData,
-        config
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
       )
+
+      console.log('✅ LOGIN SUCCESS:', data)
 
       localStorage.setItem(
         'userInfo',
@@ -79,8 +111,12 @@ const Login = () => {
         navigate('/dashboard', { replace: true })
       }
     } catch (error) {
-      const message =
-        error.response?.data?.message || 'Login Failed'
+      logAxiosError('LOGIN ERROR', error)
+
+      const message = getErrorMessage(
+        error,
+        'Login Failed'
+      )
 
       toast.error(message)
 
@@ -89,6 +125,7 @@ const Login = () => {
       }
     } finally {
       setLoading(false)
+      console.log('🛑 LOGIN FINISHED')
     }
   }
 
@@ -101,24 +138,43 @@ const Login = () => {
     try {
       setResending(true)
 
+      console.log('\n📩 RESEND VERIFICATION STARTED')
+      console.log('API URL:', `${API}/api/auth/resend-verification`)
+      console.log('EMAIL:', formData.email)
+
       const { data } = await axios.post(
         `${API}/api/auth/resend-verification`,
         {
           email: formData.email,
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
         }
       )
+
+      console.log('✅ RESEND VERIFICATION SUCCESS:', data)
 
       toast.success(
         data?.message ||
           'Verification email sent successfully'
       )
     } catch (error) {
+      logAxiosError(
+        'RESEND VERIFICATION ERROR',
+        error
+      )
+
       toast.error(
-        error.response?.data?.message ||
+        getErrorMessage(
+          error,
           'Failed to resend verification email'
+        )
       )
     } finally {
       setResending(false)
+      console.log('🛑 RESEND VERIFICATION FINISHED')
     }
   }
 

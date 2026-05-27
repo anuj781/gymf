@@ -10,16 +10,57 @@ const ForgotPassword = () => {
   const [loading, setLoading] = useState(false)
   const [sent, setSent] = useState(false)
 
+  const logAxiosError = (title, error) => {
+    console.log(`\n❌ ${title}`)
+    console.log('FULL ERROR:', error)
+    console.log('MESSAGE:', error.message)
+    console.log('CODE:', error.code)
+    console.log('STATUS:', error.response?.status)
+    console.log('BACKEND DATA:', error.response?.data)
+    console.log('HEADERS:', error.response?.headers)
+    console.log('REQUEST URL:', error.config?.url)
+    console.log('REQUEST METHOD:', error.config?.method)
+    console.log('REQUEST DATA:', error.config?.data)
+  }
+
+  const getErrorMessage = (error) => {
+    if (error.code === 'ERR_NETWORK') {
+      return 'Backend server is not running or API URL is wrong'
+    }
+
+    return (
+      error.response?.data?.message ||
+      error.message ||
+      'Failed to send reset email'
+    )
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
+
+    if (!email.trim()) {
+      toast.error('Please enter your email')
+      return
+    }
 
     try {
       setLoading(true)
 
+      console.log('\n🚀 FORGOT PASSWORD STARTED')
+      console.log('API URL:', `${API}/api/auth/forgot-password`)
+      console.log('EMAIL:', email)
+
       const { data } = await axios.post(
         `${API}/api/auth/forgot-password`,
-        { email }
+        { email },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
       )
+
+      console.log('✅ FORGOT PASSWORD SUCCESS:', data)
 
       setSent(true)
 
@@ -27,12 +68,12 @@ const ForgotPassword = () => {
         data?.message || 'Password reset email sent'
       )
     } catch (error) {
-      toast.error(
-        error.response?.data?.message ||
-          'Failed to send reset email'
-      )
+      logAxiosError('FORGOT PASSWORD ERROR', error)
+
+      toast.error(getErrorMessage(error))
     } finally {
       setLoading(false)
+      console.log('🛑 FORGOT PASSWORD FINISHED')
     }
   }
 
