@@ -60,6 +60,7 @@ const PrivateChat = () => {
 
   useEffect(() => {
     requestNotificationPermission()
+
     fetchChatData()
 
     socket.emit(
@@ -301,48 +302,56 @@ const PrivateChat = () => {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white pt-28 pb-6 px-4">
+    <div className="min-h-screen bg-black text-white pt-28 pb-6 px-3 sm:px-4">
       <div className="max-w-4xl mx-auto bg-zinc-900 border border-white/10 rounded-3xl overflow-hidden">
-        <div className="p-5 border-b border-white/10 flex items-center gap-4">
-          <img
-            src={
-              receiver?.profileImage ||
-              receiver?.image ||
-              'https://cdn-icons-png.flaticon.com/512/149/149071.png'
-            }
-            alt={receiver?.name}
-            className="w-12 h-12 rounded-full object-cover border border-yellow-500"
-          />
 
-          <div>
-            <h1 className="text-2xl font-bold">
-              {receiver?.name ||
-                'Private Chat'}
-            </h1>
+        {/* HEADER */}
 
-            {typing && (
-              <p className="text-yellow-500 text-sm">
-                {typing} is typing...
-              </p>
-            )}
+        <div className="p-4 sm:p-5 border-b border-white/10 flex flex-col sm:flex-row sm:items-center gap-4">
+
+          <div className="flex items-center gap-4 min-w-0 flex-1">
+            <img
+              src={
+                receiver?.profileImage ||
+                receiver?.image ||
+                'https://cdn-icons-png.flaticon.com/512/149/149071.png'
+              }
+              alt={receiver?.name}
+              className="w-12 h-12 rounded-full object-cover border border-yellow-500 shrink-0"
+            />
+
+            <div className="min-w-0">
+              <h1 className="text-lg sm:text-2xl font-bold truncate">
+                {receiver?.name ||
+                  'Private Chat'}
+              </h1>
+
+              {typing && (
+                <p className="text-yellow-500 text-sm truncate">
+                  {typing} is typing...
+                </p>
+              )}
+            </div>
           </div>
 
           <button
             onClick={deleteChat}
-            className="ml-auto flex items-center gap-2 bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded-xl font-bold transition"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-red-600 hover:bg-red-500 text-white px-4 py-3 rounded-xl font-bold transition"
           >
             <FaTrash />
             Delete Chat
           </button>
         </div>
 
-        <div className="h-[60vh] overflow-y-auto p-5 space-y-4 bg-black">
+        {/* CHAT AREA */}
+
+        <div className="h-[60vh] overflow-y-auto p-4 sm:p-5 space-y-4 bg-black">
+
           {messages.map((message) => {
             const senderId =
               message.sender?._id ||
               message.sender?.id ||
-              message.sender
-                ?.userId ||
+              message.sender?.userId ||
               message.sender
 
             const isMe =
@@ -366,7 +375,7 @@ const PrivateChat = () => {
                 }`}
               >
                 <div
-                  className={`relative max-w-[75%] rounded-2xl px-5 py-3 ${
+                  className={`relative max-w-[85%] sm:max-w-[75%] rounded-2xl px-4 sm:px-5 py-3 ${
                     isMe
                       ? 'bg-yellow-500 text-black'
                       : 'bg-zinc-800 text-white'
@@ -379,7 +388,7 @@ const PrivateChat = () => {
                           ?.name}
                   </p>
 
-                  <p className="break-words pr-8">
+                  <p className="break-words pr-8 text-sm sm:text-base">
                     {message.text}
                   </p>
 
@@ -409,18 +418,23 @@ const PrivateChat = () => {
           <div ref={bottomRef}></div>
         </div>
 
+        {/* MESSAGE INPUT */}
+
         <form
           onSubmit={sendMessage}
-          className="p-5 border-t border-white/10 flex gap-3"
+          className="p-4 sm:p-5 border-t border-white/10 flex items-center gap-2 sm:gap-3"
         >
           <input
             value={text}
             onChange={handleTyping}
             placeholder="Type private message..."
-            className="flex-1 bg-black border border-white/10 rounded-2xl px-5 py-4 outline-none focus:border-yellow-500"
+            className="flex-1 min-w-0 bg-black border border-white/10 rounded-2xl px-4 sm:px-5 py-3 sm:py-4 outline-none focus:border-yellow-500 text-sm sm:text-base"
           />
 
-          <button className="bg-yellow-500 text-black px-6 rounded-2xl font-bold hover:bg-yellow-400">
+          <button
+            type="submit"
+            className="shrink-0 bg-yellow-500 text-black px-4 sm:px-6 py-3 sm:py-4 rounded-2xl font-bold hover:bg-yellow-400 transition flex items-center justify-center"
+          >
             <FaPaperPlane />
           </button>
         </form>
