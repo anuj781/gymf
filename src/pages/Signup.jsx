@@ -11,6 +11,9 @@ import {
 
 const API = import.meta.env.VITE_API_URL
 
+const passwordRegex =
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/
+
 const Signup = () => {
   const navigate = useNavigate()
 
@@ -24,6 +27,14 @@ const Signup = () => {
   const [registeredEmail, setRegisteredEmail] = useState('')
   const [verificationSent, setVerificationSent] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+
+  const passwordCriteria = {
+    length: formData.password.length >= 8,
+    uppercase: /[A-Z]/.test(formData.password),
+    lowercase: /[a-z]/.test(formData.password),
+    number: /\d/.test(formData.password),
+    special: /[@$!%*?&]/.test(formData.password),
+  }
 
   const handleChange = (e) => {
     setFormData({
@@ -42,6 +53,13 @@ const Signup = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+
+    if (!passwordRegex.test(formData.password)) {
+      toast.error(
+        'Password must contain uppercase, lowercase, number, special character and minimum 8 characters'
+      )
+      return
+    }
 
     setLoading(true)
 
@@ -176,7 +194,6 @@ const Signup = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-
           <div>
             <label className="block text-sm text-gray-400 mb-2">
               Full Name
@@ -232,6 +249,24 @@ const Signup = () => {
               >
                 {showPassword ? <FaEyeSlash size={20} /> : <FaEye size={20} />}
               </button>
+            </div>
+
+            <div className="mt-3 space-y-1 text-xs">
+              <p className={passwordCriteria.length ? 'text-green-500' : 'text-gray-500'}>
+                ✓ Minimum 8 characters
+              </p>
+              <p className={passwordCriteria.uppercase ? 'text-green-500' : 'text-gray-500'}>
+                ✓ One uppercase letter
+              </p>
+              <p className={passwordCriteria.lowercase ? 'text-green-500' : 'text-gray-500'}>
+                ✓ One lowercase letter
+              </p>
+              <p className={passwordCriteria.number ? 'text-green-500' : 'text-gray-500'}>
+                ✓ One number
+              </p>
+              <p className={passwordCriteria.special ? 'text-green-500' : 'text-gray-500'}>
+                ✓ One special character (@$!%*?&)
+              </p>
             </div>
           </div>
 
