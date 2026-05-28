@@ -2,7 +2,12 @@ import { useState, useEffect } from 'react'
 import axios from 'axios'
 import toast from 'react-hot-toast'
 import { useNavigate, Link } from 'react-router-dom'
-import { FaArrowLeft } from 'react-icons/fa'
+
+import {
+  FaArrowLeft,
+  FaEye,
+  FaEyeSlash,
+} from 'react-icons/fa'
 
 import { useAuth } from '../context/AuthContext'
 
@@ -15,6 +20,10 @@ const Login = () => {
   const [loading, setLoading] = useState(false)
   const [resending, setResending] = useState(false)
   const [showResend, setShowResend] = useState(false)
+
+  /* PASSWORD TOGGLE */
+
+  const [showPassword, setShowPassword] = useState(false)
 
   const [formData, setFormData] = useState({
     email: '',
@@ -69,6 +78,7 @@ const Login = () => {
       })
     } catch (error) {
       const message = getErrorMessage(error, 'Login failed')
+
       toast.error(message)
 
       if (error.response?.data?.emailNotVerified) {
@@ -132,6 +142,9 @@ const Login = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+
+          {/* EMAIL */}
+
           <div>
             <label className="block text-sm text-gray-400 mb-2">
               Email Address
@@ -148,6 +161,8 @@ const Login = () => {
             />
           </div>
 
+          {/* PASSWORD */}
+
           <div>
             <div className="flex items-center justify-between mb-2">
               <label className="block text-sm text-gray-400">
@@ -162,16 +177,28 @@ const Login = () => {
               </Link>
             </div>
 
-            <input
-              type="password"
-              name="password"
-              placeholder="Enter your password"
-              value={formData.password}
-              onChange={handleChange}
-              className="w-full bg-black border border-white/10 rounded-2xl px-5 py-4 text-white outline-none focus:border-yellow-500 transition"
-              required
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                name="password"
+                placeholder="Enter your password"
+                value={formData.password}
+                onChange={handleChange}
+                className="w-full bg-black border border-white/10 rounded-2xl px-5 py-4 pr-14 text-white outline-none focus:border-yellow-500 transition"
+                required
+              />
+
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-yellow-500 transition"
+              >
+                {showPassword ? <FaEyeSlash size={20} /> : <FaEye size={20} />}
+              </button>
+            </div>
           </div>
+
+          {/* LOGIN BUTTON */}
 
           <button
             type="submit"
@@ -182,6 +209,8 @@ const Login = () => {
           </button>
         </form>
 
+        {/* RESEND VERIFICATION */}
+
         {showResend && (
           <button
             type="button"
@@ -189,9 +218,13 @@ const Login = () => {
             disabled={resending}
             className="w-full mt-5 bg-white/10 hover:bg-white/20 text-white py-4 rounded-2xl font-bold transition disabled:opacity-50"
           >
-            {resending ? 'Sending Verification Email...' : 'Resend Verification Email'}
+            {resending
+              ? 'Sending Verification Email...'
+              : 'Resend Verification Email'}
           </button>
         )}
+
+        {/* SIGNUP */}
 
         <p className="text-gray-400 text-center mt-8">
           Don&apos;t have an account?{' '}
